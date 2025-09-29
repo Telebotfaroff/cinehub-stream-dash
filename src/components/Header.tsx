@@ -55,13 +55,13 @@ const Header = () => {
 
           {/* Search and User Actions */}
           <div className="flex items-center space-x-4">
-            <div className="relative hidden sm:block">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search movies, series..."
-                className="pl-10 w-64 bg-muted/50 border-border/50 focus:border-primary"
-              />
-            </div>
+          <div className="relative hidden sm:block">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search movies, series..."
+              className="pl-10 w-48 lg:w-64 bg-muted/50 border-border/50 focus:border-primary"
+            />
+          </div>
 
             <Button variant="ghost" size="sm" className="sm:hidden">
               <Search className="w-5 h-5" />

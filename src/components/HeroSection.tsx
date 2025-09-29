@@ -25,14 +25,14 @@ const HeroSection = () => {
             #1 Trending Now
           </Badge>
           
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
             <span className="bg-gradient-primary bg-clip-text text-transparent">
               Movie
             </span>
             <span className="text-foreground"> Universe</span>
           </h1>
           
-          <p className="text-xl text-muted-foreground max-w-lg">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed">
             Discover thousands of movies and TV series. From the latest blockbusters to hidden gems, 
             find your next favorite entertainment.
           </p>
