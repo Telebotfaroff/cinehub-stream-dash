@@ -1,4 +1,4 @@
-import { Play, Star, Calendar, Clock } from "lucide-react";
+import { Play, Calendar, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,14 +8,13 @@ interface MovieCardProps {
   id: string;
   title: string;
   poster: string;
-  rating: number;
   year: number;
   duration: string;
   genre: string;
   type: "movie" | "series";
 }
 
-const MovieCard = ({ id, title, poster, rating, year, duration, genre, type }: MovieCardProps) => {
+const MovieCard = ({ id, title, poster, year, duration, genre, type }: MovieCardProps) => {
   return (
     <Link to={`/movie/${id}`}>
       <Card className="group relative overflow-hidden bg-gradient-card border-border/50 hover:shadow-elevated transition-all duration-500 hover:-translate-y-2">
@@ -38,12 +37,6 @@ const MovieCard = ({ id, title, poster, rating, year, duration, genre, type }: M
           <Badge variant="secondary" className="absolute top-3 left-3 bg-primary/90 text-white border-0">
             {type.toUpperCase()}
           </Badge>
-
-          {/* Rating */}
-          <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md">
-            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            <span className="text-white text-xs font-medium">{rating}</span>
-          </div>
         </div>
 
         <CardContent className="p-4 space-y-2">

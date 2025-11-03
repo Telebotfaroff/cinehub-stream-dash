@@ -1,0 +1,13 @@
+const Footer = () => {
+  return (
+    <footer className="bg-background border-t border-border/50 mt-16">
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-center text-muted-foreground">
+          &copy; {new Date().getFullYear()} MovieHub. All Rights Reserved.
+        </p>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;

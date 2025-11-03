@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Edit, Trash2, Search, Filter, Upload, X } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Filter, Upload, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import Sidebar from "@/components/Sidebar";
 import { Textarea } from "@/components/ui/textarea";
 
 type Genre = {
@@ -40,13 +42,15 @@ type MediaClip = {
 
 const Admin = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("movies");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [genreFilter, setGenreFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isGenreDialogOpen, setIsGenreDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Movie | Series | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [postType, setPostType] = useState<"movie" | "series" | null>(null);
   
   // Data states
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -150,6 +154,7 @@ const Admin = () => {
     setPosterFile(null);
     setPosterPreview(null);
     setClipFiles([]);
+    setPostType(activeTab === "movies" ? "movie" : "series");
     setIsDialogOpen(true);
   };
 
@@ -157,6 +162,16 @@ const Admin = () => {
     setEditingItem(item);
     setPosterFile(null);
     setPosterPreview(item.poster_url);
+    setClipFiles([]);
+    setPostType(activeTab === "movies" ? "movie" : "series");
+    setIsDialogOpen(true);
+  };
+  
+  const handlePost = (type: "movie" | "series") => {
+    setPostType(type);
+    setEditingItem(null);
+    setPosterFile(null);
+    setPosterPreview(null);
     setClipFiles([]);
     setIsDialogOpen(true);
   };
@@ -211,10 +226,11 @@ const Admin = () => {
         poster_url,
       };
 
+      const table = postType === "movie" ? "movies" : "series";
+      
       if (editingItem) {
         // Update existing item
-        const table = activeTab === "movies" ? "movies" : "series";
-        const updateData = activeTab === "series" 
+        const updateData = postType === "series" 
           ? { ...baseData, seasons: parseInt(formData.get("seasons") as string) }
           : baseData;
 
@@ -233,7 +249,7 @@ const Admin = () => {
             const clipUrl = await uploadFile(file, 'clips', fileName);
             
             await supabase.from("media_clips").insert({
-              [activeTab === "movies" ? "movie_id" : "series_id"]: editingItem.id,
+              [postType === "movie" ? "movie_id" : "series_id"]: editingItem.id,
               clip_url: clipUrl,
               clip_type: "other"
             });
@@ -243,8 +259,7 @@ const Admin = () => {
         toast({ title: "Updated", description: `${title} updated successfully.` });
       } else {
         // Add new item
-        const table = activeTab === "movies" ? "movies" : "series";
-        const insertData = activeTab === "series" 
+        const insertData = postType === "series" 
           ? { ...baseData, seasons: parseInt(formData.get("seasons") as string) }
           : baseData;
 
@@ -264,7 +279,7 @@ const Admin = () => {
             const clipUrl = await uploadFile(file, 'clips', fileName);
             
             await supabase.from("media_clips").insert({
-              [activeTab === "movies" ? "movie_id" : "series_id"]: newItem.id,
+              [postType === "movie" ? "movie_id" : "series_id"]: newItem.id,
               clip_url: clipUrl,
               clip_type: "other"
             });
@@ -275,7 +290,7 @@ const Admin = () => {
       }
 
       setIsDialogOpen(false);
-      if (activeTab === "movies") {
+      if (postType === "movie") {
         fetchMovies();
       } else {
         fetchSeries();
@@ -333,60 +348,29 @@ const Admin = () => {
     setClipFiles(prev => [...prev, ...files]);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-hero">
-      <Header />
-      
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage your movie and series content</p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground text-sm">{stat.title}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => (
+              <Card key={index} className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-sm">{stat.title}</p>
+                      <p className="text-2xl font-bold">{stat.value}</p>
+                    </div>
+                    <span className="text-2xl">{stat.icon}</span>
                   </div>
-                  <span className="text-2xl">{stat.icon}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 mb-6 bg-muted/50 p-1 rounded-lg w-fit">
-          <Button
-            variant={activeTab === "movies" ? "hero" : "ghost"}
-            onClick={() => setActiveTab("movies")}
-            size="sm"
-          >
-            Movies
-          </Button>
-          <Button
-            variant={activeTab === "series" ? "hero" : "ghost"}
-            onClick={() => setActiveTab("series")}
-            size="sm"
-          >
-            TV Series
-          </Button>
-          <Button
-            variant={activeTab === "genres" ? "hero" : "ghost"}
-            onClick={() => setActiveTab("genres")}
-            size="sm"
-          >
-            Genres
-          </Button>
-        </div>
-
-        {/* Content Management */}
-        {activeTab !== "genres" ? (
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      case "movies":
+      case "series":
+        return (
           <Card className="bg-gradient-card border-border/50">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -404,9 +388,7 @@ const Admin = () => {
                 </Button>
               </div>
             </CardHeader>
-
             <CardContent>
-              {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -433,8 +415,6 @@ const Admin = () => {
                   Clear
                 </Button>
               </div>
-
-              {/* Data Table */}
               <div className="rounded-md border border-border/50 overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -512,8 +492,9 @@ const Admin = () => {
               </div>
             </CardContent>
           </Card>
-        ) : (
-          /* Genres Management */
+        );
+      case "genres":
+        return (
           <Card className="bg-gradient-card border-border/50">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -547,18 +528,51 @@ const Admin = () => {
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* Add/Edit Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="bg-gradient-card border-border/50 max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingItem ? "Edit" : "Add"} {activeTab.slice(0, -1)}</DialogTitle>
+        );
+      default:
+        return null;
+    }
+  };
+  
+  return (
+    <div className="flex min-h-screen bg-gradient-hero">
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onPost={handlePost} />
+      <div className="flex flex-col flex-1">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden mb-4"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage your movie and series content</p>
+          </div>
+          {renderContent()}
+        </main>
+        <Footer />
+      </div>
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+      <div className={`fixed top-0 left-0 h-full w-64 bg-gradient-card border-r border-border/50 p-4 space-y-2 z-50 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out md:hidden`}>
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onPost={handlePost} />
+      </div>
+      
+      {/* Dialogs */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="bg-gradient-card border-border/50 sm:max-w-2xl sm:max-h-[90vh] w-full h-full sm:h-auto sm:w-auto p-0 sm:p-6 flex flex-col">
+            <DialogHeader className="p-6 sm:p-0">
+              <DialogTitle>{editingItem ? "Edit" : "Add"} {postType === 'movie' ? 'Movie' : 'Series'}</DialogTitle>
               <DialogDescription>
-                {editingItem ? "Update" : "Create a new"} {activeTab.slice(0, -1)} entry
+                {editingItem ? "Update" : "Create a new"} {postType === 'movie' ? 'movie' : 'series'} entry
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSave}>
+            <form onSubmit={handleSave} className="flex-grow overflow-y-auto px-6 sm:px-0">
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="title">Title *</Label>
@@ -613,7 +627,7 @@ const Admin = () => {
                   </Select>
                 </div>
 
-                {activeTab === "series" && (
+                {postType === "series" && (
                   <div className="grid gap-2">
                     <Label htmlFor="seasons">Seasons *</Label>
                     <Input
@@ -692,7 +706,7 @@ const Admin = () => {
                   )}
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="p-6 sm:p-0 mt-4">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
@@ -706,7 +720,7 @@ const Admin = () => {
 
         {/* Add Genre Dialog */}
         <Dialog open={isGenreDialogOpen} onOpenChange={setIsGenreDialogOpen}>
-          <DialogContent className="bg-gradient-card border-border/50">
+          <DialogContent className="bg-gradient-card border-border/50 sm:max-w-md w-full">
             <DialogHeader>
               <DialogTitle>Add Genre</DialogTitle>
               <DialogDescription>Create a new genre</DialogDescription>
@@ -735,7 +749,6 @@ const Admin = () => {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 };

@@ -10,12 +10,11 @@ const Header = () => {
     { name: "Home", href: "/" },
     { name: "Movies", href: "/movies" },
     { name: "TV Series", href: "/series" },
-    { name: "Genres", href: "/genres" },
     { name: "Top Rated", href: "/top-rated" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-card">
+    <header className="bg-background border-b border-border/50 shadow-card">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -65,11 +64,6 @@ const Header = () => {
 
             <Button variant="ghost" size="sm" className="sm:hidden">
               <Search className="w-5 h-5" />
-            </Button>
-
-            <Button variant="cinema" size="sm">
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign In</span>
             </Button>
 
             <Button variant="hero" size="sm" asChild>
